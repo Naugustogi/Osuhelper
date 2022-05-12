@@ -1,0 +1,148 @@
+#SingleInstance, force#Sing
+#NoEnv
+#MaxHotkeysPerInterval 99000000
+#HotkeyInterval 99000000
+#KeyHistory 0
+
+
+	Sterne:=0
+	Sternealt:=0
+	
+	Bpm:=0
+	Bpmalt:=0
+	
+	low=0.0
+	max=0.0
+	
+	Stamina :=1
+	lenge :=100
+	
+	iniRead,Sternealt,Save.ini,Main,Sterne		
+	iniRead,Bpmalt,Save.ini,Main,Bpm
+	iniRead,Stamina,Save.ini,Main,Stamina
+	iniRead,lenge,Save.ini,Main,lenge
+	
+	Gui, Add, Text,vstatus1 x1 y1, Sterne
+	Gui, Add, Text,vstatus2 x75 y0, Bpm
+	
+	Gui, Add, Text,vstatus3 x120  y90,%Sternealt%*
+	Gui, Add, Text,vstatus4 x120  y110,%Bpmalt% Bpm
+		
+	Gui, Add, Text,vstatus7 x120 y130, %Stamina% Stamina
+	Gui, Add, Text,vstatus8 x120 y150, %lenge% Map Länge
+
+	
+	Gui, Add, Edit, vSterne x0 y25 w60 h20
+	Gui, Add, Edit,  vBpm x75 y25 w60 h20
+	
+	Gui, Add, Checkbox, vRANKED x120 y70 , Ranked
+	Gui, Add, Text, x120  y50,Empfehlung
+	Gui, Add, Button,gStart x0 y50 w100 h50,Rechnen
+	Gui, Add, Text,x0 y110 w100 h50, Optimale Map
+	Gui, Add, Button,gSuche x0 y125 w100 h50, OsuSearch
+	Gui, Add, Text, x0 y200, Osu optimal by Naugustogi#2697
+	Gui, Add, Button,gInfo x180 y200 w70 h50, Information
+	Gui, Add, Button,gcopy x180 y170 w70 h30, copy data for osu
+	
+	GuiControl,,Sterne, %Sternealt%
+	GuiControl,,Bpm, %Bpmalt%
+	GuiControl,,lenge, %lenge%
+	
+	
+	Gui, Color, 0x45b6fe
+	Gui, Show, w250 h250, Osu optimal
+	Gui, Submit, NoHide
+return
+
+Start:	
+	Gui, Submit, NoHide
+;--------------------------------------------------------------------------------
+	if(bpmalt<bpm)
+	{
+	Stamina +=0.1
+	lenge+=10
+	}
+	if(bpmalt>bpm)
+	{
+	Stamina-=0.1
+	lenge-=10
+	}
+	if(Sterne<Sternealt)
+	{
+	Stamina+=0.01
+	lenge+=5
+	}
+	if(Sterne>Sternealt)
+	{
+	Stamina +=0.01
+	lenge-=5
+	}
+	
+	Sterne:=(Sterne+Sternealt)/2	
+	bpm:=(bpm+bpmalt)/2
+	
+	GuiControl,,Status3,%Sterne%*
+	GuiControl,,Status4,%Bpm% Bpm
+	
+	GuiControl,,Status7, %Stamina% Stamina
+	GuiControl,,Status8, %lenge% Map Länge
+
+	;GuiControl,,bpm,
+	;GuiControl,,Sterne,
+	
+
+	
+	Sternealt:=Sterne
+	bpmalt:=bpm
+	
+
+	iniwrite,%Sterne%,Save.ini,Main,Sterne
+	iniwrite,%Sternealt%,Save.ini,Main,Sternealt
+	
+	iniwrite,%Bpm%,Save.ini,Main,bpm
+	iniwrite,%Bpmalt%,Save.ini,Main,bpmalt
+	
+	iniwrite,%Stamina%,Save.ini,Main,Stamina
+	iniwrite,%lenge%,Save.ini,Main,lenge
+return
+
+
+Suche:
+
+GuiControlGet, RANKED
+If (RANKED = 1)
+{
+ra=Ranked
+}
+if (RANKED = 0)
+{
+ra=Unranked
+}
+
+low:=Sterne+0.2
+max:=Sterne+0.5
+bpms:=bpmslider
+sea=(%low%,%max%)
+lengex:=lenge+1
+Run, https://osusearch.com/search/?statuses=%ra%&modes=Taiko&max_length=%lengex%&max_bpm=%bpm%&star=%sea%
+max:=Sterne+0.1
+return
+
+Info:
+MsgBox, Verwende den Slider um die BPM auszuwählen. Trage in Stars und bpm die letzte erfolgreich gespielte map ein.
+return
+
+copy:
+Sternex :=Round(Sterne,2)
+Sterne := Round(Sterne,2)
+bpmx :=Round(bpm,2)
+bpm :=Round(Bpm,2)
+bpm := bpm-30
+bpmx +=30
+Sternex +=1
+
+Clipboard = mode=taiko status=ranked length<=%lenge% bpm>=%bpm% bpm<=%bpmx% stars>=%Sterne% stars<=%Sternex%
+
+return
+Esc::ExitApp
+F2::Reload
